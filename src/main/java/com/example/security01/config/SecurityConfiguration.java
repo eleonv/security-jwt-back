@@ -13,16 +13,18 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfiguration {
 
-    private final JTokenProvider jTokenProvider;
+    private final JwtTokenProvider jwtTokenProvider;
 
-    public SecurityConfiguration(JTokenProvider jTokenProvider) {
-        this.jTokenProvider = jTokenProvider;
+    public SecurityConfiguration(JwtTokenProvider jTokenProvider) {
+        this.jwtTokenProvider = jTokenProvider;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http.csrf(x -> x.disable());
+
+        // setting stateless session, because we choose to implement Rest API
         http.sessionManagement(x -> x.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         http.authorizeRequests(x -> x
@@ -33,8 +35,13 @@ public class SecurityConfiguration {
                 .requestMatchers("/api/v1/usuarios/validar").hasAuthority(Constante.ROL_USER)
                 .anyRequest().authenticated());
 
-        http.exceptionHandling(x->x.authenticationEntryPoint(new ExceptionAuthenticationEntryPoint()));
-        http.addFilterBefore(new JTokenFilter(jTokenProvider), UsernamePasswordAuthenticationFilter.class);
+        // setting custom access denied handler for not authorized request
+        http.exceptionHandling(x->x.accessDeniedHandler(new CustomAccessDeniedHandler()));
+
+        // setting custom entry point for unauthenticated request
+        http.exceptionHandling(x->x.authenticationEntryPoint(new CustomAuthenticationEntryPoint()));
+
+        http.addFilterBefore(new JwtTokenFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

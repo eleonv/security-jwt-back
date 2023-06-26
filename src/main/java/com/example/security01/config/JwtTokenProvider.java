@@ -14,12 +14,12 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class JTokenProvider {
+public class JwtTokenProvider {
 
     @Autowired
     private UserProvider userProvider;
 
-    public JTokenProvider() {
+    public JwtTokenProvider() {
     }
 
     public String resolveToken(HttpServletRequest req) {
