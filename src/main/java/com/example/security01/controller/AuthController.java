@@ -2,10 +2,8 @@ package com.example.security01.controller;
 
 import com.example.security01.InitCommandLineRunner;
 import com.example.security01.config.CustomException;
-import com.example.security01.entity.JPAToken;
-import com.example.security01.entity.JPAUsuario;
-import com.example.security01.entity.RequestUsuario;
-import com.example.security01.entity.ResponseApi;
+import com.example.security01.config.JwtTokenProvider;
+import com.example.security01.entity.*;
 import com.example.security01.util.Base64;
 import com.example.security01.util.Constante;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,15 +40,21 @@ public class AuthController {
                 throw new BadCredentialsException("El usuario no se encuentra registrado en el sistema");
             }
 
-            String userEncode = Base64.stringToBase64(username);
+            //String userEncode = Base64.stringToBase64(username);
+            //JPAToken token = new JPAToken();
+            //token.setValor(userEncode);
+            //InitCommandLineRunner.listTokens.add(token);
 
-            JPAToken token = new JPAToken();
-            token.setValor(userEncode);
-            InitCommandLineRunner.listTokens.add(token);
+            JwtClaims jwtClaims = new JwtClaims();
+            jwtClaims.setId(10L);
+            jwtClaims.setUsername(username);
+
+            JwtTokenProvider jwtTokenProvider = new JwtTokenProvider();
+            String token = jwtTokenProvider.createToken(jwtClaims);
 
             responseAppBean.setStatus(Constante.RESPONSE_OK);
             responseAppBean.setMessage("Usuario autenticado: " + username);
-            responseAppBean.setData(userEncode);
+            responseAppBean.setData(token);
             return new ResponseEntity<>(responseAppBean, HttpStatus.OK);
         } catch (BadCredentialsException e) {
             responseAppBean.setStatus(Constante.RESPONSE_ERROR);
